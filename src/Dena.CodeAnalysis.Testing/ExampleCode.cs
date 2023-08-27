@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 
 
-
 namespace Dena.CodeAnalysis.CSharp.Testing
 {
     /// <summary>
@@ -13,6 +12,18 @@ namespace Dena.CodeAnalysis.CSharp.Testing
         /// An example code for class libraries that can be compiled successfully with no Diagnostics.
         /// </summary>
         public const string DiagnosticsFreeClassLibrary = @"
+internal static class Foo
+{
+    internal static void Bar()
+    {
+        System.Console.WriteLine(""Hello, World!"");
+    }
+}
+";
+
+        public const string UniTaskImport = @"
+using Cysharp.Threading.Tasks;
+
 internal static class Foo
 {
     internal static void Bar()

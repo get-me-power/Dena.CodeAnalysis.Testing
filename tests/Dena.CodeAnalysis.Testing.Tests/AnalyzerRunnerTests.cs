@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Cysharp.Threading.Tasks;
 using MSTestAssert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
 
@@ -29,6 +30,19 @@ namespace Dena.CodeAnalysis.CSharp.Testing
             );
 
             MSTestAssert.AreEqual(0, diagnostics.Length, DiagnosticsFormatter.Format(diagnostics));
+        }
+
+        [TestMethod]
+        public async Task WhenGivenUniTaskImport_ItShouldReturnNoDiagnostics()
+        {
+            var anyAnalyzer = new NullAnalyzer();
+            var diagnostics = await DiagnosticAnalyzerRunner.Run(
+                anyAnalyzer,
+                new[] { typeof(UniTask) },
+                ExampleCode.UniTaskImport
+            );
+
+            MSTestAssert.AreEqual(1, diagnostics.Length, DiagnosticsFormatter.Format(diagnostics));
         }
 
         [TestMethod]
