@@ -31,7 +31,6 @@ namespace Dena.CodeAnalysis.CSharp.Testing
             MSTestAssert.AreEqual(0, diagnostics.Length, DiagnosticsFormatter.Format(diagnostics));
         }
 
-
         [TestMethod]
         public async Task WhenGivenContainingASyntaxError_ItShouldReturnSeveralDiagnostics()
         {
