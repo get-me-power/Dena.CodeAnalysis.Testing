@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -10,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Composition;
-
 
 
 namespace Dena.CodeAnalysis.CSharp.Testing
@@ -43,6 +43,29 @@ namespace Dena.CodeAnalysis.CSharp.Testing
                 CancellationToken.None,
                 ParseOptionsForLanguageVersionsDefault(),
                 CompilationOptionsForDynamicClassLibrary(),
+                null,
+                codes
+            );
+
+        /// <summary>
+        /// Run the specified <see cref="DiagnosticAnalyzer" />.
+        /// </summary>
+        /// <param name="analyzer">The <see cref="DiagnosticAnalyzer" /> to run.</param>
+        /// <param name="extraMetadataTypes"></param>
+        /// <param name="codes">The target code that the <paramref name="analyzer" /> analyze.</param>
+        /// <returns>ImmutableArray contains all reported <see cref="Diagnostic" />.</returns>
+        /// <throws>Throws <c cref="AtLeastOneCodeMustBeRequired" /> if <paramref name="codes" /> are empty.</throws>
+        public static async Task<ImmutableArray<Diagnostic>> Run(
+            DiagnosticAnalyzer analyzer,
+            Type[] extraMetadataTypes,
+            params string[] codes
+        ) =>
+            await Run(
+                analyzer,
+                CancellationToken.None,
+                ParseOptionsForLanguageVersionsDefault(),
+                CompilationOptionsForDynamicClassLibrary(),
+                extraMetadataTypes,
                 codes
             );
 
@@ -54,6 +77,7 @@ namespace Dena.CodeAnalysis.CSharp.Testing
         /// <param name="cancellationToken">The <see cref="CancellationToken" /> that the task will observe.</param>
         /// <param name="parseOptions">The <see cref="ParseOptions" />. </param>
         /// <param name="compilationOptions">The <see cref="CompilationOptions" />. Use <see cref="OutputKind.ConsoleApplication"/> if you want to analyze codes including <c>Main()</c> (default: <see cref="OutputKind.DynamicallyLinkedLibrary" />).</param>
+        /// <param name="extraMetadataTypes"></param>
         /// <param name="codes">The target code that the <paramref name="analyzer" /> analyze. Use <see cref="LanguageVersion" /> if you want to specify C# version (default: <see cref="LanguageVersion.Default" />)."</param>
         /// <returns>ImmutableArray contains all reported <see cref="Diagnostic" />.</returns>
         /// <throws>Throws <c cref="AtLeastOneCodeMustBeRequired" /> if <paramref name="codes" /> are empty.</throws>
@@ -63,6 +87,7 @@ namespace Dena.CodeAnalysis.CSharp.Testing
             CancellationToken cancellationToken,
             ParseOptions parseOptions,
             CompilationOptions compilationOptions,
+            Type[] extraMetadataTypes = null,
             params string[] codes
         )
         {
@@ -93,8 +118,19 @@ namespace Dena.CodeAnalysis.CSharp.Testing
             var metadataReferences =
                 await ReferenceAssemblies.Default.ResolveAsync(Language, CancellationToken.None);
 
+            var additionalReferences = new List<MetadataReference>();
+
+            if (extraMetadataTypes != null)
+            {
+                foreach (var metadataType in extraMetadataTypes)
+                {
+                    additionalReferences.Add(MetadataReference.CreateFromFile(metadataType.Assembly.Location));
+                }
+            }
+
             var project = noMetadataReferencedProject
                 .AddMetadataReferences(metadataReferences)
+                .AddMetadataReferences(additionalReferences)
                 .WithParseOptions(parseOptions)
                 .WithCompilationOptions(compilationOptions);
 
@@ -189,7 +225,6 @@ namespace Dena.CodeAnalysis.CSharp.Testing
                 LazyThreadSafetyMode.ExecutionAndPublication
             );
         }
-
 
 
         /// <summary>
