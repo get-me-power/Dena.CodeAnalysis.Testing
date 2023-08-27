@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-    - master
+      - master
   pull_request:
 
 jobs:
@@ -14,6 +14,6 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@main
         with:
-          dotnet-version: '5.0.x'
+          dotnet-version: '6.0.x'
       - name: dotnet test
         run: dotnet test ./Dena.CodeAnalysis.Testing.sln
